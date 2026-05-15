@@ -1,0 +1,40 @@
+# Android
+*.apk
+*.ap_
+*.dex
+*.aab
+*.aar
+*.iml
+.DS_Store
+build/
+.gradle/
+local.properties
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+*.iml
+**/*.iml
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# LiteRT model files (large binaries — push via adb, do not commit)
+*.litertlm
+gemma4-models/
+ggml/
+
+# Kotlin IDE analysis cache
+android-app/.kotlin/
+
+# Logs and temporary
