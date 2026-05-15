@@ -103,14 +103,13 @@ class QuestionSliderViewModel(application: Application) : AndroidViewModel(appli
 
     fun answerNo() {
         val q = _uiState.value.currentQuestion ?: return
-        commitAndAdvance(
-            QuestionAnswer(
-                questionId = q.id,
-                questionText = q.description,
-                standardRef = q.standardRef,
-                answerType = QuestionAnswer.AnswerType.NO,
-            )
+        val answer = QuestionAnswer(
+            questionId = q.id,
+            questionText = q.description,
+            standardRef = q.standardRef,
+            answerType = QuestionAnswer.AnswerType.NO,
         )
+        _uiState.value = _uiState.value.copy(pendingAnswer = answer, showPhotoPrompt = true)
     }
 
     fun skipQuestion() {
@@ -175,18 +174,13 @@ class QuestionSliderViewModel(application: Application) : AndroidViewModel(appli
                 customTranscript = null,
             )
 
-            if (q.type == com.example.fieldsafesolar.data.model.ChecklistItem.ChecklistItemType.OPEN_ENDED) {
-                // Descriptive question: show photo prompt before advancing, transcription runs in background
-                _uiState.value = _uiState.value.copy(
-                    recordingAmplitude = 0f,
-                    inputState = InputState.IDLE,
-                    pendingAnswer = answer,
-                    showPhotoPrompt = true,
-                )
-            } else {
-                _uiState.value = _uiState.value.copy(recordingAmplitude = 0f)
-                commitAndAdvance(answer)
-            }
+            // Show photo prompt before advancing for all question types; transcription runs in background
+            _uiState.value = _uiState.value.copy(
+                recordingAmplitude = 0f,
+                inputState = InputState.IDLE,
+                pendingAnswer = answer,
+                showPhotoPrompt = true,
+            )
 
             _pendingCount.value++
             val job = viewModelScope.launch {
