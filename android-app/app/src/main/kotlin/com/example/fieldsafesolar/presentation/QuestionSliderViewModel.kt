@@ -194,16 +194,17 @@ class QuestionSliderViewModel(application: Application) : AndroidViewModel(appli
                 // if the JNI thread is stuck — unlike withTimeoutOrNull which cannot interrupt native code.
                 val raw = withContext(Dispatchers.IO) {
                     val future = whisperExecutor.submit<String> {
-                        try { kotlinx.coroutines.runBlocking { sttEngine.transcribeAudio(audioPath) } }
+                        val result = try { kotlinx.coroutines.runBlocking { sttEngine.transcribeAudio(audioPath) } }
                         catch (_: Exception) { "" }
+                        try { File(audioPath).delete() } catch (_: Exception) {}
+                        result
                     }
-                    try { future.get(30, TimeUnit.SECONDS) }
+                    try { future.get(5, TimeUnit.MINUTES) }
                     catch (_: TimeoutException) { "" }
                     catch (_: Exception) { "" }
                 }
                 // Strip trailing voice command that RealWear picks up when the worker says "Stop"
                 val transcript = stripTrailingStopCommand(raw)
-                withContext(Dispatchers.IO) { try { File(audioPath).delete() } catch (_: Exception) {} }
                 // Update answer whether it's still pending (open-ended waiting for photo) or already committed
                 _uiState.value = _uiState.value.let { s ->
                     val updatedPending = if (s.pendingAnswer?.questionId == q.id)

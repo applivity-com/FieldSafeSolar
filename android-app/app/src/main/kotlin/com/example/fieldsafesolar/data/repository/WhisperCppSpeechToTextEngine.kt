@@ -51,6 +51,12 @@ class WhisperCppSpeechToTextEngine(private val context: Context) : SpeechToTextE
         val audioData = readWavFile(audioFile)
             ?: return@withContext "[STT error: failed to read audio]"
 
+        Log.d(LOG_TAG, "Audio samples: ${audioData.size} (${"%.2f".format(audioData.size / 16000f)}s)")
+        if (audioData.size < 1600) {
+            Log.w(LOG_TAG, "Audio too short for transcription: ${audioData.size} samples")
+            return@withContext ""
+        }
+
         return@withContext try {
             ctx.transcribeData(audioData, printTimestamp = false).trim()
         } catch (e: Exception) {

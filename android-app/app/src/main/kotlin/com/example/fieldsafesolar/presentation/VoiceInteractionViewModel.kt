@@ -105,7 +105,12 @@ class VoiceInteractionViewModel(application: Application) : AndroidViewModel(app
                         delay(100)
                         audioRecorder.getCurrentAmplitude()
                     }
-                    (samples.average().toFloat() * 2.5f).coerceIn(500f, 6000f)
+                    // Drop samples that look like speech (> 2× the minimum) so that a worker
+                    // speaking immediately after pressing record doesn't inflate the baseline.
+                    val minSample = samples.min()
+                    val ambientSamples = samples.filter { it <= minSample * 2f }
+                    val base = if (ambientSamples.size >= 2) ambientSamples.average().toFloat() else minSample
+                    (base * 2.5f).coerceIn(500f, 6000f)
                 }
             }
 

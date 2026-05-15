@@ -178,9 +178,12 @@ Java_com_whispercpp_whisper_WhisperLib_00024Companion_fullTranscribe(
     params.translate = false;
     params.language = "en";
     params.n_threads = num_threads;
+    LOGI("Using %d threads", params.n_threads);
     params.offset_ms = 0;
     params.no_context = true;
     params.single_segment = false;
+    params.no_speech_thold = 1.01f;  // never discard segments as "no speech"
+    params.temperature_inc = 0.0f;   // single decode pass — prevents 6x slowdown on slow CPUs
 
     whisper_reset_timings(context);
 
@@ -188,6 +191,7 @@ Java_com_whispercpp_whisper_WhisperLib_00024Companion_fullTranscribe(
     if (whisper_full(context, params, audio_data_arr, audio_data_length) != 0) {
         LOGI("Failed to run the model");
     } else {
+        LOGI("whisper_full succeeded, segments: %d", whisper_full_n_segments(context));
         whisper_print_timings(context);
     }
     (*env)->ReleaseFloatArrayElements(env, audio_data, audio_data_arr, JNI_ABORT);

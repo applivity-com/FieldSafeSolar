@@ -18,10 +18,13 @@ private class CpuInfo(private val lines: List<String>) {
         getHighPerfCpuCountByVariant()
     }
 
-    private fun getHighPerfCpuCountByFrequencies(): Int =
-        getCpuValues(property = "processor") { getMaxCpuFrequency(it.toInt()) }
+    private fun getHighPerfCpuCountByFrequencies(): Int {
+        val freqs = getCpuValues(property = "processor") { getMaxCpuFrequency(it.toInt()) }
             .also { Log.d(LOG_TAG, "Binned cpu frequencies (frequency, count): ${it.binnedValues()}") }
-            .countDroppingMin()
+        val highPerfCount = freqs.countDroppingMin()
+        // Homogeneous CPU (all same freq): use all cores. big.LITTLE: use fast cluster only.
+        return if (highPerfCount == 0) freqs.size else highPerfCount
+    }
 
     private fun getHighPerfCpuCountByVariant(): Int =
         getCpuValues(property = "CPU variant") { it.substringAfter("0x").toInt(radix = 16) }
