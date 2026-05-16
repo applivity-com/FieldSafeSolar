@@ -1,6 +1,8 @@
 # FieldSafe Solar
 
-**Offline-first AI safety copilot for solar and electrical field workers**
+FieldSafe Solar is an offline, hands-free safety inspection assistant for solar and electrical field workers, powered by on-device Gemma 4 E2B. It replaces disconnected paper checklists with a voice-first workflow — workers speak their answers, describe hazards, and capture photos without removing gloves or touching a screen. At the end of each inspection, Gemma performs conservative batch reasoning across the full checklist context and returns a GO / CAUTION / STOP_WORK recommendation for human review.
+
+Built for RealWear HMT devices and field conditions where cloud connectivity, bare hands, and tablet-based workflows are not reliable.
 
 Submitted to the [Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon) — Safety Track (Kaggle × Google DeepMind)
 
@@ -25,6 +27,8 @@ At the end of every inspection, the app generates a structured safety report wit
 Solar and electrical workers often operate in remote fields, rooftops, and underground locations where internet is unavailable. Cloud AI fails here. Gemma 4 Edge (E4B/E2B) runs entirely on the Android phone, delivering frontier reasoning with zero connectivity dependency.
 
 Safety reasoning is conservative by design: the model defaults to WARN or STOP_WORK when uncertain. Workers must verbally confirm critical safety facts — the AI assists but never certifies.
+
+> **Note:** The Gemma model requires a one-time download (~2 GB) before first use. After provisioning, no network connection is required during inspections.
 
 ---
 
@@ -66,11 +70,38 @@ Key design decisions:
 
 ---
 
+## What We Built
+
+- Android app in Kotlin / Jetpack Compose, optimized for RealWear HMT (single-column layout, 80dp+ buttons, landscape-locked)
+- Four local checklist templates covering 31 standards-mapped inspection points
+- Voice-button workflow: YES / NO / SKIP / DESCRIBE / CAPTURE — no touchscreen required during inspection
+- On-device speech recognition via Whisper.cpp tiny.en (bundled in assets, JNI wrapper)
+- CameraX evidence capture with voice trigger
+- ML Kit image labeling and OCR (labels and text included in Gemma batch prompt)
+- On-device Gemma 4 E2B inference through LiteRT-LM — no cloud API call during inspection
+- Structured JSON safety verdict: GO / CAUTION / STOP_WORK with Gemma reasoning summary
+- Room database persistence for all inspections, transcripts, and evidence metadata
+- Human reviewer override flow before finalizing any inspection result
+- PDF report export via FileProvider (shareable audit trail)
+- Android TTS spoken feedback with offline voice fallback
+- In-app Gemma model download with HuggingFace authentication
+- `DemoStubAnalyzer` fallback — full UI flow always demonstrable even without model on device
+
+---
+
 ## Screenshots / Demo
 
 > **Demo video:** [Watch on YouTube](https://youtu.be/HCzSYi_pLXY)
 >
 > **APK download:** [Download from GitHub Releases](https://github.com/applivity-com/FieldSafeSolar/releases/tag/v1.0.0)
+
+| Voice Inspection | Gemma On-Device Inference |
+|:---:|:---:|
+| ![Voice recording — listening to worker response, OSHA reference shown](screenshots/screenshot-voice-recording.png) | ![Gemma E2B batch inference running on-device](screenshots/screenshot-ai-inference.png) |
+
+| Safe to Proceed (GO) | Stop Work |
+|:---:|:---:|
+| ![SAFE TO PROCEED verdict with human review buttons](screenshots/screenshot-safe-to-proceed.png) | ![STOP WORK verdict with key finding — arc-rated face shield missing](screenshots/screenshot-stop-work.png) |
 
 ---
 
@@ -131,7 +162,7 @@ adb install android-app/app/build/outputs/apk/debug/app-debug.apk
    - Whisper transcribes worker speech on-device
    - Gemma reasons over evidence + vision findings + applicable standard (e.g. "NFPA 70E §130.7")
    - Evaluates: PASS / WARN / FAIL / STOP_WORK; spoken aloud via TTS
-4. **Repeat** for each checklist item (29 items across 4 types, each citing a safety standard)
+4. **Repeat** for each checklist item (31 inspection points across 4 types, each citing a safety standard)
 5. **Generate report** — Gemma produces structured JSON: summary, decision, standards referenced
 6. **View report** — full audit trail: AI decision, worker confirmations, standard citations, transcript
 
@@ -183,6 +214,17 @@ Model files (`.litertlm`) are not committed — they are large binaries fetched 
 3. **Worker confirmation required.** AI never concludes safety without worker verbal confirmation of critical facts (lockout, de-energization, PPE presence).
 4. **Always auditable.** Every inspection produces a structured report with AI reasoning, worker transcript, and evidence photos.
 5. **Demo resilience.** `DemoStubAnalyzer` is never removed — the app always works for demos even without model files on device.
+
+---
+
+## Known Limitations
+
+- **Inference time:** Final Gemma analysis takes approximately 60–80 seconds on CPU-only wearable hardware. The app performs one batch inference at the end of the checklist rather than per-question, so Gemma can reason across the full inspection context.
+- **Model provisioning:** The Gemma model (~2 GB) is not bundled in the APK. It requires a one-time download before first use. After provisioning, no network connection is required during inspections.
+- **Photo analysis pipeline:** ML Kit provides fast on-device image labels and OCR text. These are included in the Gemma batch prompt; photos are not passed directly to Gemma as visual input.
+- **Cross-modal contradiction detection:** The app does not automatically detect contradictions between spoken answers and photo evidence (e.g., a worker says gloves are on while a photo shows bare hands). Human reviewer judgment remains essential.
+- **Demo mode:** If no Gemma model files are present on the device, the app falls back to `DemoStubAnalyzer` — a deterministic stub with scripted realistic responses. This exists so the full UI flow is always demonstrable. It is never used as a substitute for real inference in field use.
+- **Decision support only:** FieldSafe Solar is a hackathon prototype and AI-assisted decision-support tool, not a certified compliance system. Final authority for all safety decisions remains with a qualified human reviewer.
 
 ---
 
