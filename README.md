@@ -68,9 +68,9 @@ Key design decisions:
 
 ## Screenshots / Demo
 
-> **Demo video:** *(link to YouTube walkthrough — coming soon)*
+> **Demo video:** [Watch on YouTube](https://youtu.be/HCzSYi_pLXY)
 >
-> **APK download:** *(attach to GitHub release — coming soon)*
+> **APK download:** *(attach to GitHub release)*
 
 ---
 
@@ -86,22 +86,34 @@ cd fieldsafe-solar/android-app
 
 **Requires:** JDK 21, Android SDK 34, NDK r27+ (for Whisper.cpp JNI).
 
-### 2. Get the Gemma 4 model
+### 2. Configure local.properties
 
-**Option A — In-app download (recommended):** Launch the app, navigate to the model download screen, and download directly to the device over Wi-Fi.
+Create `android-app/local.properties` (gitignored — never committed) with:
 
-**Option B — Manual via adb:** Download from [HuggingFace litert-community](https://huggingface.co/litert-community):
-- `gemma-4-E4B-it.litertlm` (primary, ~4B params)
-- `gemma-4-E2B-it.litertlm` (fallback, ~2B params)
+```
+sdk.dir=/path/to/your/Android/sdk
+HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MODEL_DOWNLOAD_URL=https://huggingface.co/litert-community/gemma-4-E2B-it/resolve/main/gemma-4-E2B-it.litertlm
+```
 
+- **`HF_TOKEN`** — a [HuggingFace read token](https://huggingface.co/settings/tokens). The Gemma 4 litert models are gated; you must accept the license on HuggingFace before the token will grant access.
+- **`MODEL_DOWNLOAD_URL`** — the direct `.litertlm` download URL from [litert-community on HuggingFace](https://huggingface.co/litert-community).
+
+These values are compiled into `BuildConfig` at build time and used by the in-app model download screen.
+
+### 3. Get the Gemma 4 model
+
+**Option A — In-app download (recommended):** After installing, open the app and use the model download screen. It fetches the model directly to the device using the token you configured above.
+
+**Option B — Manual via adb:** Skip the token setup and push models directly:
 ```bash
-adb push gemma-4-E4B-it.litertlm \
-    /sdcard/Android/data/com.example.fieldsafesolar/files/models/
 adb push gemma-4-E2B-it.litertlm \
     /sdcard/Android/data/com.example.fieldsafesolar/files/models/
 ```
 
-### 3. Install and run
+Download `.litertlm` files from [litert-community on HuggingFace](https://huggingface.co/litert-community) (requires HuggingFace login + license acceptance).
+
+### 4. Install and run
 
 ```bash
 adb install android-app/app/build/outputs/apk/debug/app-debug.apk
