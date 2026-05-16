@@ -110,8 +110,8 @@ Key design decisions:
 ### 1. Clone and build
 
 ```bash
-git clone <repo-url>
-cd fieldsafe-solar/android-app
+git clone https://github.com/applivity-com/FieldSafeSolar.git
+cd FieldSafeSolar/android-app
 ./gradlew assembleDebug
 ```
 
