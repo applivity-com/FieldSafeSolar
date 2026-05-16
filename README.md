@@ -70,7 +70,7 @@ Key design decisions:
 
 > **Demo video:** [Watch on YouTube](https://youtu.be/HCzSYi_pLXY)
 >
-> **APK download:** *(attach to GitHub release)*
+> **APK download:** [Download from GitHub Releases](https://github.com/applivity-com/FieldSafeSolar/releases/tag/v1.0.0)
 
 ---
 
