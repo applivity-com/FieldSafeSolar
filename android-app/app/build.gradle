@@ -10,11 +10,11 @@ def localPropsFile = rootProject.file('local.properties')
 if (localPropsFile.exists()) localPropsFile.withInputStream { localProps.load(it) }
 
 android {
-    namespace 'com.example.fieldsafesolar'
+    namespace 'com.applivity.fieldsafesolar'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.fieldsafesolar"
+        applicationId "com.applivity.fieldsafesolar"
         minSdk 26
         targetSdk 34
         versionCode 1

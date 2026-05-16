@@ -108,7 +108,7 @@ These values are compiled into `BuildConfig` at build time and used by the in-ap
 **Option B — Manual via adb:** Skip the token setup and push models directly:
 ```bash
 adb push gemma-4-E2B-it.litertlm \
-    /sdcard/Android/data/com.example.fieldsafesolar/files/models/
+    /sdcard/Android/data/com.applivity.fieldsafesolar/files/models/
 ```
 
 Download `.litertlm` files from [litert-community on HuggingFace](https://huggingface.co/litert-community) (requires HuggingFace login + license acceptance).
