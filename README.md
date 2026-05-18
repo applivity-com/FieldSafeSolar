@@ -91,9 +91,9 @@ Key design decisions:
 
 ## Screenshots / Demo
 
-> **Demo video:** [Watch on YouTube](https://youtu.be/HCzSYi_pLXY)
+> **Demo video:** [Watch on YouTube](https://youtu.be/Jpq_jpIWLPQ)
 >
-> **APK download:** [Download from GitHub Releases](https://github.com/applivity-com/FieldSafeSolar/releases/tag/v1.0.0)
+> **APK download:** [Download from GitHub Releases](https://github.com/applivity-com/FieldSafeSolar/releases/tag/v1.1.0)
 
 | Voice Inspection | Gemma On-Device Inference |
 |:---:|:---:|
@@ -219,7 +219,7 @@ Model files (`.litertlm`) are not committed — they are large binaries fetched 
 
 ## Known Limitations
 
-- **Inference time:** Final Gemma analysis takes approximately 60–80 seconds on CPU-only wearable hardware. The app performs one batch inference at the end of the checklist rather than per-question, so Gemma can reason across the full inspection context.
+- **Inference time:** Final Gemma analysis takes approximately 50–60 seconds on CPU-only wearable hardware. The app performs one batch inference at the end of the checklist rather than per-question, so Gemma can reason across the full inspection context.
 - **Model provisioning:** The Gemma model (~2 GB) is not bundled in the APK. It requires a one-time download before first use. After provisioning, no network connection is required during inspections.
 - **Photo analysis pipeline:** ML Kit provides fast on-device image labels and OCR text. These are included in the Gemma batch prompt; photos are not passed directly to Gemma as visual input.
 - **Cross-modal contradiction detection:** The app does not automatically detect contradictions between spoken answers and photo evidence (e.g., a worker says gloves are on while a photo shows bare hands). Human reviewer judgment remains essential.
