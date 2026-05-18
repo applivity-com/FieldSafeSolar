@@ -131,6 +131,8 @@ fun QuestionSliderScreen(
                     modifier = Modifier.weight(0.6f).fillMaxHeight(),
                     state = state,
                     onReplay = { viewModel.replayQuestion() },
+                    onReRecordFromPhoto = { viewModel.reRecordFromPhotoPrompt() },
+                    onReRecordAnswer = { idx -> viewModel.reRecordAnswer(idx) },
                 )
 
                 // Right: answer buttons or recording controls
@@ -166,6 +168,7 @@ fun QuestionSliderScreen(
                             InputState.RECORDING -> RecordingControls(
                                 amplitude = state.recordingAmplitude,
                                 onStop = { viewModel.stopCustomRecordingAsync() },
+                                onReRecord = { viewModel.reRecord() },
                             )
                             InputState.TRANSCRIBING -> TranscribingIndicator()
                             InputState.PROCESSING_PHOTO -> ProcessingPhotoIndicator()
@@ -298,9 +301,11 @@ private fun QuestionPanel(
     modifier: Modifier = Modifier,
     state: com.applivity.fieldsafesolar.presentation.QuestionSliderUiState,
     onReplay: () -> Unit,
+    onReRecordFromPhoto: () -> Unit = {},
+    onReRecordAnswer: (Int) -> Unit = {},
 ) {
     if (state.inputState == InputState.FINALIZING) {
-        TranscriptReviewPanel(modifier = modifier, state = state)
+        TranscriptReviewPanel(modifier = modifier, state = state, onReRecord = onReRecordAnswer)
         return
     }
     val q = state.currentQuestion
@@ -363,6 +368,16 @@ private fun QuestionPanel(
                         }
                     }
                 }
+            }
+            if (state.pendingAnswer?.answerType == com.applivity.fieldsafesolar.data.model.QuestionAnswer.AnswerType.CUSTOM) {
+                Spacer(modifier = Modifier.height(8.dp))
+                AnswerButton(
+                    label = "RE-RECORD",
+                    color = FieldSafeColors.Secondary,
+                    textColor = FieldSafeColors.OnSecondary,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    onClick = onReRecordFromPhoto,
+                )
             }
         }
 
@@ -522,7 +537,7 @@ private fun PhotoPromptButtons(
 }
 
 @Composable
-private fun RecordingControls(amplitude: Float, onStop: () -> Unit) {
+private fun RecordingControls(amplitude: Float, onStop: () -> Unit, onReRecord: () -> Unit) {
     var secondsLeft by remember { mutableStateOf(15) }
     LaunchedEffect(Unit) {
         while (secondsLeft > 0) {
@@ -562,6 +577,14 @@ private fun RecordingControls(amplitude: Float, onStop: () -> Unit) {
             textColor = Color.White,
             modifier = Modifier.fillMaxWidth().height(80.dp),
             onClick = onStop,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        AnswerButton(
+            label = "↩  RE-RECORD",
+            color = FieldSafeColors.Secondary,
+            textColor = FieldSafeColors.OnSecondary,
+            modifier = Modifier.fillMaxWidth().height(64.dp),
+            onClick = onReRecord,
         )
     }
 }
@@ -640,9 +663,11 @@ private fun ProcessingPhotoIndicator() {
 private fun TranscriptReviewPanel(
     modifier: Modifier = Modifier,
     state: com.applivity.fieldsafesolar.presentation.QuestionSliderUiState,
+    onReRecord: (answerIndex: Int) -> Unit = {},
 ) {
-    val customAnswers = state.answers.filter {
-        it.answerType == com.applivity.fieldsafesolar.data.model.QuestionAnswer.AnswerType.CUSTOM
+    val allAnswers = state.answers
+    val customAnswerIndices = allAnswers.indices.filter {
+        allAnswers[it].answerType == com.applivity.fieldsafesolar.data.model.QuestionAnswer.AnswerType.CUSTOM
     }
     Column(
         modifier = modifier
@@ -658,41 +683,49 @@ private fun TranscriptReviewPanel(
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.5.sp,
         )
-        customAnswers.forEachIndexed { _, answer ->
-            Box(
+        customAnswerIndices.forEach { answerIndex ->
+            val answer = allAnswers[answerIndex]
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .background(FieldSafeColors.SurfaceVariant)
-                    .padding(12.dp)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = answer.questionText.take(70) + if (answer.questionText.length > 70) "…" else "",
+                    color = FieldSafeColors.OnSurfaceVariant,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                )
+                if (answer.customTranscript != null) {
                     Text(
-                        text = answer.questionText.take(70) + if (answer.questionText.length > 70) "…" else "",
-                        color = FieldSafeColors.OnSurfaceVariant,
-                        fontSize = 12.sp,
-                        lineHeight = 17.sp,
+                        text = "\"${answer.customTranscript}\"",
+                        color = FieldSafeColors.OnSurface,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 20.sp,
                     )
-                    if (answer.customTranscript != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    AnswerButton(
+                        label = "RE-RECORD",
+                        color = FieldSafeColors.Secondary,
+                        textColor = FieldSafeColors.OnSecondary,
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        onClick = { onReRecord(answerIndex) },
+                    )
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ThinkingDotsAnimation(color = FieldSafeColors.Warning)
                         Text(
-                            text = "\"${answer.customTranscript}\"",
-                            color = FieldSafeColors.OnSurface,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 20.sp,
+                            text = "Transcribing...",
+                            color = FieldSafeColors.Warning,
+                            fontSize = 13.sp,
                         )
-                    } else {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            ThinkingDotsAnimation(color = FieldSafeColors.Warning)
-                            Text(
-                                text = "Transcribing...",
-                                color = FieldSafeColors.Warning,
-                                fontSize = 13.sp,
-                            )
-                        }
                     }
                 }
             }

@@ -256,7 +256,52 @@ class QuestionSliderViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun reRecord() {
-        _uiState.value = _uiState.value.copy(inputState = InputState.IDLE, customTranscript = "")
+        amplitudePollingJob?.cancel()
+        amplitudePollingJob = null
+        viewModelScope.launch { try { audioRecorder.cancelRecording() } catch (_: Exception) {} }
+        _uiState.value = _uiState.value.copy(
+            inputState = InputState.IDLE,
+            customTranscript = "",
+            recordingAmplitude = 0f,
+            showPhotoPrompt = false,
+            pendingAnswer = null,
+        )
+    }
+
+    fun reRecordFromPhotoPrompt() {
+        val state = _uiState.value
+        val qId = state.pendingAnswer?.questionId ?: return
+        pendingTranscriptionJobs.remove(qId)?.let { job ->
+            job.cancel()
+            _pendingCount.value = maxOf(0, _pendingCount.value - 1)
+        }
+        _uiState.value = state.copy(
+            inputState = InputState.IDLE,
+            showPhotoPrompt = false,
+            pendingAnswer = null,
+            customTranscript = "",
+        )
+    }
+
+    fun reRecordAnswer(answerIndex: Int) {
+        val state = _uiState.value
+        val targetAnswer = state.answers.getOrNull(answerIndex) ?: return
+        state.answers.drop(answerIndex).forEach { a ->
+            pendingTranscriptionJobs.remove(a.questionId)?.let { job ->
+                job.cancel()
+                _pendingCount.value = maxOf(0, _pendingCount.value - 1)
+            }
+        }
+        val questionIndex = state.questions.indexOfFirst { it.id == targetAnswer.questionId }
+            .coerceAtLeast(0)
+        _uiState.value = state.copy(
+            answers = state.answers.take(answerIndex),
+            currentIndex = questionIndex,
+            inputState = InputState.IDLE,
+            showPhotoPrompt = false,
+            pendingAnswer = null,
+            customTranscript = "",
+        )
     }
 
     fun onPhotoCaptured(uri: Uri) {

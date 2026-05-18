@@ -238,7 +238,7 @@ fun PreTaskPlanScreen(
                                                     colors = ButtonDefaults.buttonColors(containerColor = FieldSafeColors.Primary),
                                                     shape = RoundedCornerShape(12.dp),
                                                 ) {
-                                                    Text("🎤  ANSWER BY VOICE", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = FieldSafeColors.OnPrimary)
+                                                    Text("ANSWER BY VOICE", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = FieldSafeColors.OnPrimary)
                                                 }
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth(),
@@ -267,7 +267,7 @@ fun PreTaskPlanScreen(
                                                     colors = ButtonDefaults.buttonColors(containerColor = FieldSafeColors.SurfaceVariant),
                                                     shape = RoundedCornerShape(12.dp),
                                                 ) {
-                                                    Text("🔊  REPLAY QUESTION", fontSize = 13.sp, color = FieldSafeColors.OnSurface)
+                                                    Text("REPLAY QUESTION", fontSize = 13.sp, color = FieldSafeColors.OnSurface)
                                                 }
                                             }
                                         }
